@@ -207,19 +207,44 @@ static int set_lua( lua_State *L )
 static int add_lua( lua_State *L )
 {
     buf_t *b = luaL_checkudata( L, 1, MODULE_MT );
+    int argc = lua_gettop( L );
+    int i = 2;
     size_t len = 0;
-    const char *str = luaL_checklstring( L, 2, &len );
+    const char *str = NULL;
     
-    if( len == 0 ){
-        return 0;
-    }
-    else if( buf_increase( b, b->used + (int64_t)len + 1 ) == 0 ){
-        memcpy( b->mem + b->used, str, len );
-        b->used += len;
-        ((char*)b->mem)[b->used] = 0;
-        return 0;
+    for(; i <= argc; i++ )
+    {
+        switch( lua_type( L, i ) )
+        {
+            case LUA_TNUMBER:
+            case LUA_TSTRING:
+                str = lua_tolstring( L, i, &len );
+            break;
+            case LUA_TBOOLEAN:
+                len = (size_t)(5 - lua_toboolean( L, i ));
+                str = ( len == 4 ) ? "true" : "false";
+            break;
+            default:
+                continue;
+        }
+        
+        if( len )
+        {
+            if( buf_increase( b, b->used + (int64_t)len + 1 ) == 0 ){
+                memcpy( b->mem + b->used, str, len );
+                b->used += len;
+                ((char*)b->mem)[b->used] = 0;
+            }
+            else {
+                goto MEMERROR;
+            }
+        }
+        len = 0;
     }
     
+    return 0;
+    
+MEMERROR:
     // got error
     lua_pushinteger( L, errno );
     
