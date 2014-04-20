@@ -212,22 +212,13 @@ static int add_lua( lua_State *L )
     size_t len = 0;
     const char *str = NULL;
     
-    for(; i <= argc; i++ )
+    if( argc > 1 )
     {
-        switch( lua_type( L, i ) )
-        {
-            case LUA_TNUMBER:
-            case LUA_TSTRING:
-                str = lua_tolstring( L, i, &len );
-            break;
-            case LUA_TBOOLEAN:
-                len = (size_t)(5 - lua_toboolean( L, i ));
-                str = ( len == 4 ) ? "true" : "false";
-            break;
-            default:
-                continue;
-        }
+        size_t len = 0;
+        const char *str = NULL;
         
+        lua_concat( L, argc - 1 );
+        str = lua_tolstring( L, 2, &len );
         if( len )
         {
             if( buf_increase( b, b->used + (int64_t)len + 1 ) == 0 ){
@@ -235,20 +226,15 @@ static int add_lua( lua_State *L )
                 b->used += len;
                 ((char*)b->mem)[b->used] = 0;
             }
+            // got error
             else {
-                goto MEMERROR;
+                lua_pushinteger( L, errno );
+                return 1;
             }
         }
-        len = 0;
     }
     
     return 0;
-    
-MEMERROR:
-    // got error
-    lua_pushinteger( L, errno );
-    
-    return 1;
 }
 
 
