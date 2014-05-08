@@ -278,6 +278,42 @@ static int insert_lua( lua_State *L )
 }
 
 
+static int read_lua( lua_State *L )
+{
+    buf_t *b = getudata( L );
+    int fd = luaL_checkint( L, 2 );
+    lua_Integer bytes = luaL_checkinteger( L, 3 );
+    int64_t incr = bytes - ( b->total - b->used );
+    ssize_t len;
+    
+    // check arguments
+    if( fd < 0 ){
+        return luaL_argerror( L, 2, "fd must be larger than 0" );
+    }
+    else if( bytes < 1 ){
+        return luaL_argerror( L, 3, "bytes must be larger than 0" );
+    }
+    else if( incr > 0 && buf_increase( b, b->total + incr ) != 0 ){
+        lua_pushinteger( L, -1 );
+        lua_pushinteger( L, errno );
+        return 2;
+    }
+    
+    len = read( fd, b->mem + b->used, (size_t)bytes );
+    lua_pushinteger( L, len );
+    if( len > 0 ){
+        b->used += len;
+        ((char*)b->mem)[b->used] = 0;
+    }
+    else if( len == -1 ){
+        lua_pushinteger( L, errno );
+        return 2;
+    }
+    
+    return 1;
+}
+
+
 static int sub_lua( lua_State *L )
 {
     buf_t *b = getudata( L );
@@ -495,6 +531,7 @@ LUALIB_API int luaopen_buffer( lua_State *L )
         { "set", set_lua },
         { "add", add_lua },
         { "insert", insert_lua },
+        { "read", read_lua },
         { "sub", sub_lua },
         { "substr", substr_lua },
         { NULL, NULL }
