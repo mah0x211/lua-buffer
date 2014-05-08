@@ -87,6 +87,15 @@ typedef struct {
 #define MODULE_MT   "buffer"
 
 
+#define getudata(L) ({ \
+    buf_t *_buf = (buf_t*)luaL_checkudata( L, 1, MODULE_MT ); \
+    if( !_buf->mem ){ \
+        return luaL_error( L, "attempted to access already freed memory" ); \
+    } \
+    _buf; \
+})
+
+
 static inline int buf_increase( buf_t *b, int64_t bytes )
 {
     if( bytes > b->total )
@@ -134,7 +143,7 @@ static int buf_shift( buf_t *b, int64_t from, int64_t idx )
 
 static int total_lua( lua_State *L )
 {
-    buf_t *b = luaL_checkudata( L, 1, MODULE_MT );
+    buf_t *b = getudata( L );
     
     lua_pushinteger( L, (lua_Integer)b->total );
     
@@ -144,7 +153,7 @@ static int total_lua( lua_State *L )
 
 #define upperlower_lua(L,range,op) ({ \
     int rc = 2; \
-    buf_t *b = luaL_checkudata( L, 1, MODULE_MT ); \
+    buf_t *b = getudata( L ); \
     unsigned char *lmem = pnalloc( (size_t)b->used, unsigned char ); \
     if( lmem ) { \
         unsigned char *ptr = (unsigned char*)b->mem; \
@@ -183,7 +192,7 @@ static int upper_lua( lua_State *L )
 
 static int set_lua( lua_State *L )
 {
-    buf_t *b = luaL_checkudata( L, 1, MODULE_MT );
+    buf_t *b = getudata( L );
     size_t len = 0;
     const char *str = luaL_checklstring( L, 2, &len );
     
@@ -206,11 +215,8 @@ static int set_lua( lua_State *L )
 
 static int add_lua( lua_State *L )
 {
-    buf_t *b = luaL_checkudata( L, 1, MODULE_MT );
+    buf_t *b = getudata( L );
     int argc = lua_gettop( L );
-    int i = 2;
-    size_t len = 0;
-    const char *str = NULL;
     
     if( argc > 1 )
     {
@@ -240,7 +246,7 @@ static int add_lua( lua_State *L )
 
 static int insert_lua( lua_State *L )
 {
-    buf_t *b = luaL_checkudata( L, 1, MODULE_MT );
+    buf_t *b = getudata( L );
     int64_t idx = luaL_checkinteger( L, 2 );
     size_t len = 0;
     const char *str = luaL_checklstring( L, 3, &len );
@@ -274,7 +280,7 @@ static int insert_lua( lua_State *L )
 
 static int sub_lua( lua_State *L )
 {
-    buf_t *b = luaL_checkudata( L, 1, MODULE_MT );
+    buf_t *b = getudata( L );
     int64_t head = luaL_checkinteger( L, 2 );
     int64_t tail = b->used;
     
@@ -325,7 +331,7 @@ EMPTY_STRING:
 
 static int substr_lua( lua_State *L )
 {
-    buf_t *b = luaL_checkudata( L, 1, MODULE_MT );
+    buf_t *b = getudata( L );
     int64_t head = luaL_checkinteger( L, 2 );
     int64_t tail = b->used;
     
@@ -369,11 +375,27 @@ EMPTY_STRING:
 }
 
 
+
+static int free_lua( lua_State *L )
+{
+    buf_t *b = getudata( L );
+    
+    pdealloc( b->mem );
+    b->mem = NULL;
+    b->used = 0;
+    b->total = 0;
+    
+    return 0;
+}
+
+
 static int dealloc_gc( lua_State *L )
 {
     buf_t *b = (buf_t*)lua_touserdata( L, 1 );
     
-    pdealloc( b->mem );
+    if( b->mem ){
+        pdealloc( b->mem );
+    }
     
     return 0;
 }
@@ -465,8 +487,8 @@ LUALIB_API int luaopen_buffer( lua_State *L )
         { NULL, NULL }
     };
     struct luaL_Reg method[] = {
-        // with socket-fd
         // method
+        { "free", free_lua },
         { "total", total_lua },
         { "upper", upper_lua },
         { "lower", lower_lua },
