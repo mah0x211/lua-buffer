@@ -293,7 +293,7 @@ static int read_lua( lua_State *L )
     else if( bytes < 1 ){
         return luaL_argerror( L, 3, "bytes must be larger than 0" );
     }
-    else if( incr > 0 && buf_increase( b, b->total + incr ) != 0 ){
+    else if( incr > 0 && buf_increase( b, b->used + incr ) != 0 ){
         lua_pushinteger( L, -1 );
         lua_pushinteger( L, errno );
         return 2;
