@@ -77,9 +77,9 @@
 // do not touch directly
 typedef struct {
     // buffer
-    int64_t unit;
-    int64_t used;
-    int64_t total;
+    lua_Integer unit;
+    lua_Integer used;
+    lua_Integer total;
     void *mem;
 } buf_t;
 
@@ -96,11 +96,11 @@ typedef struct {
 })
 
 
-static inline int buf_increase( buf_t *b, int64_t bytes )
+static inline int buf_increase( buf_t *b, lua_Integer bytes )
 {
     if( bytes > b->total )
     {
-        int64_t mod = bytes % b->unit;
+        lua_Integer mod = bytes % b->unit;
         void *buf = realloc( b->mem, (size_t)(( mod ) ? bytes - mod + b->unit : bytes) );
         
         if( !buf ){
@@ -114,9 +114,9 @@ static inline int buf_increase( buf_t *b, int64_t bytes )
 }
 
 
-static int buf_shift( buf_t *b, int64_t from, int64_t idx )
+static int buf_shift( buf_t *b, lua_Integer from, lua_Integer idx )
 {
-    int64_t len = b->used - from;
+    lua_Integer len = b->used - from;
     
     // right shift
     if( from < idx )
@@ -145,7 +145,7 @@ static int total_lua( lua_State *L )
 {
     buf_t *b = getudata( L );
     
-    lua_pushinteger( L, (lua_Integer)b->total );
+    lua_pushinteger( L, b->total );
     
     return 1;
 }
@@ -157,7 +157,7 @@ static int total_lua( lua_State *L )
     unsigned char *lmem = pnalloc( (size_t)b->used, unsigned char ); \
     if( lmem ) { \
         unsigned char *ptr = (unsigned char*)b->mem; \
-        int64_t i = 0; \
+        lua_Integer i = 0; \
         for(; i < b->used; i++ ) { \
             switch( ptr[i] ){ \
                 case range: \
@@ -199,10 +199,10 @@ static int set_lua( lua_State *L )
     if( len == 0 ){
         return 0;
     }
-    else if( buf_increase( b, (int64_t)len + 1 ) == 0 ){
+    else if( buf_increase( b, (lua_Integer)len + 1 ) == 0 ){
         memcpy( b->mem, str, len );
         ((char*)b->mem)[len] = 0;
-        b->used = (int64_t)len;
+        b->used = (lua_Integer)len;
         return 0;
     }
     
@@ -227,7 +227,7 @@ static int add_lua( lua_State *L )
         str = lua_tolstring( L, 2, &len );
         if( len )
         {
-            if( buf_increase( b, b->used + (int64_t)len + 1 ) == 0 ){
+            if( buf_increase( b, b->used + (lua_Integer)len + 1 ) == 0 ){
                 memcpy( b->mem + b->used, str, len );
                 b->used += len;
                 ((char*)b->mem)[b->used] = 0;
@@ -247,7 +247,7 @@ static int add_lua( lua_State *L )
 static int insert_lua( lua_State *L )
 {
     buf_t *b = getudata( L );
-    int64_t idx = luaL_checkinteger( L, 2 );
+    lua_Integer idx = luaL_checkinteger( L, 2 );
     size_t len = 0;
     const char *str = luaL_checklstring( L, 3, &len );
     
@@ -266,7 +266,7 @@ static int insert_lua( lua_State *L )
         }
     }
     
-    if( buf_shift( b, idx, idx + (int64_t)len ) == 0 ){
+    if( buf_shift( b, idx, idx + (lua_Integer)len ) == 0 ){
         memcpy( b->mem + idx, str, len );
         return 0;
     }
@@ -283,7 +283,7 @@ static int read_lua( lua_State *L )
     buf_t *b = getudata( L );
     int fd = luaL_checkint( L, 2 );
     lua_Integer bytes = luaL_checkinteger( L, 3 );
-    int64_t incr = bytes - ( b->total - b->used );
+    lua_Integer incr = bytes - ( b->total - b->used );
     ssize_t len;
     
     // check arguments
@@ -317,8 +317,8 @@ static int read_lua( lua_State *L )
 static int sub_lua( lua_State *L )
 {
     buf_t *b = getudata( L );
-    int64_t head = luaL_checkinteger( L, 2 );
-    int64_t tail = b->used;
+    lua_Integer head = luaL_checkinteger( L, 2 );
+    lua_Integer tail = b->used;
     
     // check arguments
     // head
@@ -368,8 +368,8 @@ EMPTY_STRING:
 static int substr_lua( lua_State *L )
 {
     buf_t *b = getudata( L );
-    int64_t head = luaL_checkinteger( L, 2 );
-    int64_t tail = b->used;
+    lua_Integer head = luaL_checkinteger( L, 2 );
+    lua_Integer tail = b->used;
     
     // check arguments
     // check index
@@ -451,7 +451,7 @@ static int len_lua( lua_State *L )
 {
     buf_t *b = luaL_checkudata( L, 1, MODULE_MT );
     
-    lua_pushinteger( L, (lua_Integer)b->used );
+    lua_pushinteger( L, b->used );
     
     return 1;
 }
@@ -459,7 +459,7 @@ static int len_lua( lua_State *L )
 
 static int alloc_lua( lua_State *L )
 {
-    int64_t unit = (int64_t)luaL_checkinteger( L, 1 );
+    lua_Integer unit = luaL_checkinteger( L, 1 );
     buf_t *b = NULL;
     
     // check arguments
