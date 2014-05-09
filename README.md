@@ -3,9 +3,9 @@ lua-buffer
 
 buffer module.
 
-# Create Buffer Object
+## Create Buffer Object
 
-## buf, errno = buffer( size )
+### buf, errno = buffer( size )
 
 **Parameters**
 
@@ -23,10 +23,9 @@ local buffer = require('buffer');
 local buf, err = buffer(128);
 ```
 
+## Methods
 
-# Methods
-
-## mem, bytes = buf:raw()
+### mem, bytes = buf:raw()
 
 return raw memory pointer and number of bytes.
 
@@ -35,13 +34,13 @@ return raw memory pointer and number of bytes.
 1. mem: raw memory pointer (lightuserdata)
 2. bytes: number of bytes.
 
-## buf:free()
+### buf:free()
 
 this method will deallocate memory immediately.  
 after calling this method, the buffer object can no longer be used.
 
 
-## bytes = buf:total()
+### bytes = buf:total()
 
 return the bytes of allocated memory.
 
@@ -50,7 +49,7 @@ return the bytes of allocated memory.
 1. bytes: the bytes of allocated memory.
 
 
-## str, errno = buf:upper()
+### str, errno = buf:upper()
 
 returns the copy of string converted to uppercase.
 
@@ -60,7 +59,7 @@ returns the copy of string converted to uppercase.
 2. errno: errno of memory allocation failure.
 
 
-## str, errno = buf:lower()
+### str, errno = buf:lower()
 
 returns the copy of string converted to lowercase.
 
@@ -70,7 +69,7 @@ returns the copy of string converted to lowercase.
 2. errno: errno of memory allocation failure.
 
 
-## errno = buf:set( str )
+### errno = buf:set( str )
 
 copy the specified string.
 
@@ -79,7 +78,7 @@ copy the specified string.
 1. errno: errno of memory allocation failure.
 
 
-## errno = buf:add( str1[, str2[, ...]] )
+### errno = buf:add( str1[, str2[, ...]] )
 
 append the all arguments at the tail of buffer.
 
@@ -88,7 +87,7 @@ append the all arguments at the tail of buffer.
 1. errno: errno of memory allocation failure.
 
 
-## errno = buf:insert( idx, str )
+### errno = buf:insert( idx, str )
 
 insert the string at the idx position.
 
@@ -97,7 +96,7 @@ insert the string at the idx position.
 1. errno: errno of memory allocation failure.
 
 
-## errno = buf:sub( from[, to] )
+### errno = buf:sub( from[, to] )
 
 returns a string between the start index and the end index. or, through the end of the string from start index.
 
@@ -106,7 +105,7 @@ returns a string between the start index and the end index. or, through the end 
 1. errno: errno of memory allocation failure.
 
 
-## errno = buf:substr( from[, len] )
+### errno = buf:substr( from[, len] )
 
 returns a string between the start index and the start index + specified length. or, through the end of the string from start index.
 
@@ -115,7 +114,7 @@ returns a string between the start index and the start index + specified length.
 1. errno: errno of memory allocation failure.
 
 
-## bytes, errno = buf:read( fd, bytes )
+### bytes, errno = buf:read( fd, bytes )
 
 read specified number of bytes from the specified descriptor and return the actual number of bytes read.
 
