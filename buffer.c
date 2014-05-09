@@ -136,6 +136,17 @@ static inline int buf_increase( buf_t *b, lua_Integer from, lua_Integer bytes )
 }
 
 
+static int raw_lua( lua_State *L )
+{
+    buf_t *b = getudata( L );
+    
+    lua_pushlightuserdata( L, b->mem );
+    lua_pushinteger( L, b->used );
+    
+    return 2;
+}
+
+
 static int total_lua( lua_State *L )
 {
     buf_t *b = getudata( L );
@@ -524,6 +535,7 @@ LUALIB_API int luaopen_buffer( lua_State *L )
     };
     struct luaL_Reg method[] = {
         // method
+        { "raw", raw_lua },
         { "free", free_lua },
         { "total", total_lua },
         { "upper", upper_lua },
