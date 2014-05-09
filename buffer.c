@@ -74,12 +74,17 @@
 }while(0)
 
 
+#define BUF_SIZE_MAX \
+    ((~((lua_Integer)1 << (sizeof(lua_Integer) * CHAR_BIT - 1)))-1)
+
+
 // do not touch directly
 typedef struct {
     // buffer
     lua_Integer unit;
+    lua_Integer nmax;
+    lua_Integer nalloc;
     lua_Integer used;
-    lua_Integer total;
     void *mem;
 } buf_t;
 
@@ -96,48 +101,38 @@ typedef struct {
 })
 
 
-static inline int buf_increase( buf_t *b, lua_Integer bytes )
+static inline int buf_alloc( buf_t *b, lua_Integer nalloc )
 {
-    if( bytes > b->total )
+    if( nalloc > b->nmax ){
+        errno = ENOMEM;
+        return -1;
+    }
+    else if( nalloc > b->nalloc )
     {
-        lua_Integer mod = bytes % b->unit;
-        void *buf = realloc( b->mem, (size_t)(( mod ) ? bytes - mod + b->unit : bytes) );
+        void *buf = realloc( b->mem, (size_t)(nalloc * b->unit) );
         
         if( !buf ){
             return -1;
         }
+        b->nalloc = nalloc;
         b->mem = buf;
-        b->total = bytes;
     }
     
     return 0;
 }
 
 
-static int buf_shift( buf_t *b, lua_Integer from, lua_Integer idx )
+static inline int buf_increase( buf_t *b, lua_Integer from, lua_Integer bytes )
 {
-    lua_Integer len = b->used - from;
-    
-    // right shift
-    if( from < idx )
-    {
-        if( buf_increase( b, idx + len + 1 ) != 0 ){
-            return -1;
-        }
-        memmove( b->mem + idx, b->mem + from, len );
-    }
-    // left shift
-    else if( from > idx ){
-        memcpy( b->mem + idx, b->mem + from, len );
+    if( from < 0 || from > b->used ){
+        errno = EINVAL;
     }
     else {
-        return 0;
+        bytes += from;
+        return buf_alloc( b, bytes / b->unit + ( ( bytes % b->unit ) ? 1 : 0 ) );
     }
     
-    b->used = idx + len;
-    ((char*)b->mem)[b->used] = 0;
-    
-    return 0;
+    return -1;
 }
 
 
@@ -145,7 +140,7 @@ static int total_lua( lua_State *L )
 {
     buf_t *b = getudata( L );
     
-    lua_pushinteger( L, b->total );
+    lua_pushinteger( L, b->unit * b->nalloc );
     
     return 1;
 }
@@ -199,7 +194,7 @@ static int set_lua( lua_State *L )
     if( len == 0 ){
         return 0;
     }
-    else if( buf_increase( b, (lua_Integer)len + 1 ) == 0 ){
+    else if( buf_increase( b, 0, (lua_Integer)len + 1 ) == 0 ){
         memcpy( b->mem, str, len );
         ((char*)b->mem)[len] = 0;
         b->used = (lua_Integer)len;
@@ -227,16 +222,16 @@ static int add_lua( lua_State *L )
         str = lua_tolstring( L, 2, &len );
         if( len )
         {
-            if( buf_increase( b, b->used + (lua_Integer)len + 1 ) == 0 ){
+            if( buf_increase( b, b->used, (lua_Integer)len + 1 ) == 0 ){
                 memcpy( b->mem + b->used, str, len );
-                b->used += len;
+                b->used += (lua_Integer)len;
                 ((char*)b->mem)[b->used] = 0;
+                return 0;
             }
+            
             // got error
-            else {
-                lua_pushinteger( L, errno );
-                return 1;
-            }
+            lua_pushinteger( L, errno );
+            return 1;
         }
     }
     
@@ -253,7 +248,7 @@ static int insert_lua( lua_State *L )
     
     // check arguments
     // check index
-    if( idx > b->used ){
+    if( len == 0 || idx > b->used ){
         return 0;
     }
     else if( idx < 0 )
@@ -266,8 +261,11 @@ static int insert_lua( lua_State *L )
         }
     }
     
-    if( buf_shift( b, idx, idx + (lua_Integer)len ) == 0 ){
+    if( buf_increase( b, b->used, (lua_Integer)len + 1 ) == 0 ){
+        memmove( b->mem + idx + len, b->mem + idx, b->used - idx + 1 );
         memcpy( b->mem + idx, str, len );
+        b->used += len;
+        ((char*)b->mem)[b->used] = 0;
         return 0;
     }
     
@@ -283,8 +281,7 @@ static int read_lua( lua_State *L )
     buf_t *b = getudata( L );
     int fd = luaL_checkint( L, 2 );
     lua_Integer bytes = luaL_checkinteger( L, 3 );
-    lua_Integer incr = bytes - ( b->total - b->used );
-    ssize_t len;
+    ssize_t len = 0;
     
     // check arguments
     if( fd < 0 ){
@@ -293,19 +290,18 @@ static int read_lua( lua_State *L )
     else if( bytes < 1 ){
         return luaL_argerror( L, 3, "bytes must be larger than 0" );
     }
-    else if( incr > 0 && buf_increase( b, b->used + incr ) != 0 ){
-        lua_pushinteger( L, -1 );
-        lua_pushinteger( L, errno );
-        return 2;
+    else if( buf_increase( b, b->used, bytes ) != 0 ){
+        len = -1;
     }
-    
-    len = read( fd, b->mem + b->used, (size_t)bytes );
-    lua_pushinteger( L, len );
-    if( len > 0 ){
-        b->used += len;
+    else if( ( len = read( fd, b->mem + b->used, (size_t)bytes ) ) > 0 ){
+        b->used += (lua_Integer)len;
         ((char*)b->mem)[b->used] = 0;
     }
-    else if( len == -1 ){
+    
+    // set number of bytes read
+    lua_pushinteger( L, (lua_Integer)len );
+    // got error
+    if( len == -1 ){
         lua_pushinteger( L, errno );
         return 2;
     }
@@ -419,7 +415,7 @@ static int free_lua( lua_State *L )
     pdealloc( b->mem );
     b->mem = NULL;
     b->used = 0;
-    b->total = 0;
+    b->nalloc = 0;
     
     return 0;
 }
@@ -469,7 +465,9 @@ static int alloc_lua( lua_State *L )
     else if( ( b = lua_newuserdata( L, sizeof( buf_t ) ) ) )
     {
         if( ( b->mem = pnalloc( (size_t)unit, char ) ) ){
-            b->unit = b->total = unit;
+            b->unit = unit;
+            b->nalloc = 1;
+            b->nmax = BUF_SIZE_MAX / unit;
             b->used = 0;
             ((char*)b->mem)[0] = 0;
             // set metatable
