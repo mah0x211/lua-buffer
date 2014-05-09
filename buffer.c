@@ -473,7 +473,7 @@ static int alloc_lua( lua_State *L )
     
     // check arguments
     if( unit < 1 ){
-        return luaL_argerror( L, 1, "unit size must be larger than 0" );
+        return luaL_argerror( L, 1, "size must be larger than 0" );
     }
     else if( ( b = lua_newuserdata( L, sizeof( buf_t ) ) ) )
     {
