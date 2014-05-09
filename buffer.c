@@ -192,6 +192,8 @@ static int set_lua( lua_State *L )
     const char *str = luaL_checklstring( L, 2, &len );
     
     if( len == 0 ){
+        ((char*)b->mem)[len] = 0;
+        b->used = 0;
         return 0;
     }
     else if( buf_increase( b, 0, (lua_Integer)len + 1 ) == 0 ){
