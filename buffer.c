@@ -128,13 +128,17 @@ static inline int buf_increase( buf_t *b, lua_Integer from, lua_Integer bytes )
         errno = EINVAL;
         return -1;
     }
-    
-    bytes = -( b->used - from - bytes );
-    if( bytes > 0 ){
-        return buf_alloc( 
-            b, b->nalloc + 
-            ( bytes / b->unit + ( ( bytes % b->unit ) ? 1 : 0 ) ) 
-        );
+    else
+    {
+        lua_Integer total = b->unit * b->nalloc;
+        
+        bytes = -( total - from - bytes );
+        if( bytes > 0 ){
+            return buf_alloc( 
+                b, b->nalloc + 
+                ( bytes / b->unit + ( ( bytes % b->unit ) ? 1 : 0 ) ) 
+            );
+        }
     }
     
     return 0;
