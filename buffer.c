@@ -124,15 +124,20 @@ static inline int buf_alloc( buf_t *b, lua_Integer nalloc )
 
 static inline int buf_increase( buf_t *b, lua_Integer from, lua_Integer bytes )
 {
-    if( from < 0 || from > b->used ){
+    if( bytes < 0 || from < 0 || from > b->used ){
         errno = EINVAL;
-    }
-    else {
-        bytes += from;
-        return buf_alloc( b, bytes / b->unit + ( ( bytes % b->unit ) ? 1 : 0 ) );
+        return -1;
     }
     
-    return -1;
+    bytes = -( b->used - from - bytes );
+    if( bytes > 0 ){
+        return buf_alloc( 
+            b, b->nalloc + 
+            ( bytes / b->unit + ( ( bytes % b->unit ) ? 1 : 0 ) ) 
+        );
+    }
+    
+    return 0;
 }
 
 
