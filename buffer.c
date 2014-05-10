@@ -145,6 +145,13 @@ static inline int buf_increase( buf_t *b, lua_Integer from, lua_Integer bytes )
 }
 
 
+static inline void buf_term( buf_t *b, lua_Integer pos )
+{
+    b->used = pos;
+    ((char*)b->mem)[b->used] = 0;
+}
+
+
 static int raw_lua( lua_State *L )
 {
     buf_t *b = getudata( L );
@@ -212,14 +219,12 @@ static int set_lua( lua_State *L )
     const char *str = luaL_checklstring( L, 2, &len );
     
     if( len == 0 ){
-        ((char*)b->mem)[len] = 0;
-        b->used = 0;
+        buf_term( b, (lua_Integer)len );
         return 0;
     }
     else if( buf_increase( b, 0, (lua_Integer)len + 1 ) == 0 ){
         memcpy( b->mem, str, len );
-        ((char*)b->mem)[len] = 0;
-        b->used = (lua_Integer)len;
+        buf_term( b, (lua_Integer)len );
         return 0;
     }
     
@@ -246,8 +251,7 @@ static int add_lua( lua_State *L )
         {
             if( buf_increase( b, b->used, (lua_Integer)len + 1 ) == 0 ){
                 memcpy( b->mem + b->used, str, len );
-                b->used += (lua_Integer)len;
-                ((char*)b->mem)[b->used] = 0;
+                buf_term( b, b->used + (lua_Integer)len );
                 return 0;
             }
             
@@ -286,8 +290,7 @@ static int insert_lua( lua_State *L )
     if( buf_increase( b, b->used, (lua_Integer)len + 1 ) == 0 ){
         memmove( b->mem + idx + len, b->mem + idx, b->used - idx + 1 );
         memcpy( b->mem + idx, str, len );
-        b->used += len;
-        ((char*)b->mem)[b->used] = 0;
+        buf_term( b, b->used + (lua_Integer)len );
         return 0;
     }
     
@@ -316,8 +319,7 @@ static int read_lua( lua_State *L )
         len = -1;
     }
     else if( ( len = read( fd, b->mem + b->used, (size_t)bytes ) ) > 0 ){
-        b->used += (lua_Integer)len;
-        ((char*)b->mem)[b->used] = 0;
+        buf_term( b, b->used + (lua_Integer)len );
     }
     
     // set number of bytes read
@@ -490,8 +492,7 @@ static int alloc_lua( lua_State *L )
             b->unit = unit;
             b->nalloc = 1;
             b->nmax = BUF_SIZE_MAX / unit;
-            b->used = 0;
-            ((char*)b->mem)[0] = 0;
+            buf_term( b, 0 );
             // set metatable
             luaL_getmetatable( L, MODULE_MT );
             lua_setmetatable( L, -2 );
