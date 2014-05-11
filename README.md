@@ -39,6 +39,19 @@ return raw memory pointer and number of bytes.
 this method will deallocate memory immediately.  
 after calling this method, the buffer object can no longer be used.
 
+### code, ... = buf:byte( [i [, j]] )
+
+returns the internal numerical codes of the characters s[i], s[i+1], ..., s[j].
+
+**Parameters**
+
+- i: index number. (default: 1)
+- j: index number. (default: same as i)
+
+**Returns**
+
+1. code: numerical codes of the characters.
+
 
 ### bytes = buf:total()
 
@@ -73,6 +86,10 @@ returns the copy of string converted to lowercase.
 
 copy the specified string.
 
+**Parameters**
+
+- str: string.
+
 **Returns**
 
 1. errno: errno of memory allocation failure.
@@ -81,6 +98,10 @@ copy the specified string.
 ### errno = buf:add( str1[, str2[, ...]] )
 
 append the all arguments at the tail of buffer.
+
+**Parameters**
+
+- str1..strN: string.
 
 **Returns**
 
@@ -91,32 +112,53 @@ append the all arguments at the tail of buffer.
 
 insert the string at the idx position.
 
+**Parameters**
+
+- idx: position of insertion that starting from 1.
+- str: insertion string.
+
+
 **Returns**
 
 1. errno: errno of memory allocation failure.
 
 
-### errno = buf:sub( from[, to] )
+### str = buf:sub( from[, to] )
 
-returns a string between the start index and the end index. or, through the end of the string from start index.
+returns a substring between the start position and the end position. or, through the end of the string from start position.
 
-**Returns**
+**Parameters**
 
-1. errno: errno of memory allocation failure.
-
-
-### errno = buf:substr( from[, len] )
-
-returns a string between the start index and the start index + specified length. or, through the end of the string from start index.
+- from: start position for string extraction that starting from 1.
+- to: the end position for string extraction.
 
 **Returns**
 
-1. errno: errno of memory allocation failure.
+1. str: substring.
+
+
+### str = buf:substr( from[, len] )
+
+returns a substring between the start position and the start position + specified length. or, through the end of the string from start position.
+
+**Parameters**
+
+- from: start position for string extraction that starting from 1.
+- to: the end position for string extraction.
+
+**Returns**
+
+1. str: substring.
 
 
 ### bytes, errno = buf:read( fd, bytes )
 
 read specified number of bytes from the specified descriptor and return the actual number of bytes read.
+
+**Parameters**
+
+- fd: descriptor.
+- bytes: number of bytes for read.
 
 **Returns**
 
