@@ -166,8 +166,8 @@ static int raw_lua( lua_State *L )
 static int byte_lua( lua_State *L )
 {
     buf_t *b = getudata( L );
-    lua_Integer head = 0;
-    lua_Integer tail = 0;
+    lua_Integer head = 1;
+    lua_Integer tail = 1;
     lua_Integer ret = 0;
     
     // check arguments
