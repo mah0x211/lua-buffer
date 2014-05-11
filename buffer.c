@@ -322,6 +322,9 @@ static int insert_lua( lua_State *L )
     if( len == 0 || idx > b->used ){
         return 0;
     }
+    else if( idx > 0 ){
+        idx--;
+    }
     else if( idx < 0 )
     {
         if( ( idx + b->used ) < 0 ){
@@ -390,14 +393,14 @@ static int sub_lua( lua_State *L )
     if( head >= b->used ){
         goto EMPTY_STRING;
     }
-    else if( head < 0 )
-    {
-        if( ( head + b->used ) < 0 ){
-            head = 0;
-        }
-        else {
-            head += b->used;
-        }
+    else if( head > 0 ){
+        head--;
+    }
+    else if( ( head + b->used ) < 0 ){
+        head = 0;
+    }
+    else {
+        head += b->used;
     }
     // tail
     if( !lua_isnoneornil( L, 3 ) )
@@ -440,6 +443,9 @@ static int substr_lua( lua_State *L )
     // check index
     if( head > b->used ){
         goto EMPTY_STRING;
+    }
+    else if( head > 0 ){
+        head--;
     }
     else if( head < 0 )
     {
