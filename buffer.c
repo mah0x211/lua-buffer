@@ -463,7 +463,7 @@ static int substr_lua( lua_State *L )
         if( tail < 1 ){
             goto EMPTY_STRING;
         }
-        else if( head + tail < b->used ){
+        else if( b->used - head - tail > 0 ){
             tail += head;
         }
         else {
