@@ -163,6 +163,51 @@ static int raw_lua( lua_State *L )
 }
 
 
+static int byte_lua( lua_State *L )
+{
+    buf_t *b = getudata( L );
+    lua_Integer head = 0;
+    lua_Integer tail = 0;
+    lua_Integer ret = 0;
+    
+    // check arguments
+    if( !lua_isnoneornil( L, 2 ) ){
+        head = luaL_checkinteger( L, 2 );
+        if( head < 1 || head > b->used ){
+            lua_pushnil( L );
+            return 1;
+        }
+    }
+    if( !lua_isnoneornil( L, 3 ) )
+    {
+        tail = luaL_checkinteger( L, 3 );
+        // ignore negative index
+        if( tail < 0 ){
+            tail = head;
+        }
+        else if( tail < head ){
+            lua_pushnil( L );
+            return 1;
+        }
+        else if( tail > b->used ){
+            tail = b->used;
+        }
+    }
+    else {
+        tail = head;
+    }
+    
+    lua_settop( L, 0 );
+    head--;
+    ret = tail - head;
+    for(; head < tail; head++ ){
+        lua_pushinteger( L, ((unsigned char*)b->mem)[head] );
+    }
+    
+    return (int)ret;
+}
+
+
 static int total_lua( lua_State *L )
 {
     buf_t *b = getudata( L );
@@ -546,16 +591,17 @@ LUALIB_API int luaopen_buffer( lua_State *L )
     struct luaL_Reg method[] = {
         // method
         { "raw", raw_lua },
-        { "free", free_lua },
+        { "byte", byte_lua },
         { "total", total_lua },
-        { "upper", upper_lua },
         { "lower", lower_lua },
+        { "upper", upper_lua },
         { "set", set_lua },
         { "add", add_lua },
         { "insert", insert_lua },
         { "read", read_lua },
         { "sub", sub_lua },
         { "substr", substr_lua },
+        { "free", free_lua },
         { NULL, NULL }
     };
     
