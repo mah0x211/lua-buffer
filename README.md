@@ -153,7 +153,7 @@ returns a substring between the start position and the start position + specifie
 
 ### bytes, errno = buf:read( fd [, bytes] )
 
-read specified number of bytes from the specified descriptor and return the actual number of bytes read.
+read data into buffer from the specified descriptor and return the actual number of bytes read.
 
 **Parameters**
 
@@ -163,5 +163,20 @@ read specified number of bytes from the specified descriptor and return the actu
 **Returns**
 
 1. bytes: number of bytes read.
+2. errno: errno of read failure.
+
+
+### bytes, errno = buf:write( fd, pos )
+
+write buffer data to the specified descriptor and return the actual number of bytes written.
+
+**Parameters**
+
+- fd: descriptor.
+- pos: offset position of buffer.
+
+**Returns**
+
+1. bytes: number of bytes written.
 2. errno: errno of read failure.
 
