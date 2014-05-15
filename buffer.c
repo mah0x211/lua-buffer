@@ -349,45 +349,6 @@ static int insert_lua( lua_State *L )
 }
 
 
-static int read_lua( lua_State *L )
-{
-    buf_t *b = getudata( L );
-    int fd = luaL_checkint( L, 2 );
-    lua_Integer bytes = b->unit;
-    ssize_t len = 0;
-    
-    // check arguments
-    if( fd < 0 ){
-        return luaL_argerror( L, 2, "fd must be larger than 0" );
-    }
-    // use buffer size
-    else if( !lua_isnoneornil( L, 3 ) )
-    {
-        bytes = luaL_checkinteger( L, 3 );
-        if( bytes < 1 ){
-            return luaL_argerror( L, 3, "bytes must be larger than 0" );
-        }
-    }
-    
-    if( buf_increase( b, b->used, bytes ) != 0 ){
-        len = -1;
-    }
-    else if( ( len = read( fd, b->mem + b->used, (size_t)bytes ) ) > 0 ){
-        buf_term( b, b->used + (lua_Integer)len );
-    }
-    
-    // set number of bytes read
-    lua_pushinteger( L, (lua_Integer)len );
-    // got error
-    if( len == -1 ){
-        lua_pushinteger( L, errno );
-        return 2;
-    }
-    
-    return 1;
-}
-
-
 static int sub_lua( lua_State *L )
 {
     buf_t *b = getudata( L );
@@ -487,6 +448,75 @@ EMPTY_STRING:
     return 1;
 }
 
+
+static int read_lua( lua_State *L )
+{
+    buf_t *b = getudata( L );
+    int fd = luaL_checkint( L, 2 );
+    lua_Integer bytes = b->unit;
+    ssize_t len = 0;
+    
+    // check arguments
+    if( fd < 0 ){
+        return luaL_argerror( L, 2, "fd must be larger than 0" );
+    }
+    else if( !lua_isnoneornil( L, 3 ) )
+    {
+        bytes = luaL_checkinteger( L, 3 );
+        if( bytes < 1 ){
+            return luaL_argerror( L, 3, "bytes must be larger than 0" );
+        }
+    }
+    
+    if( buf_increase( b, b->used, bytes ) != 0 ){
+        len = -1;
+    }
+    else if( ( len = read( fd, b->mem + b->used, (size_t)bytes ) ) > 0 ){
+        buf_term( b, b->used + (lua_Integer)len );
+    }
+    
+    // set number of bytes read
+    lua_pushinteger( L, (lua_Integer)len );
+    // got error
+    if( len == -1 ){
+        lua_pushinteger( L, errno );
+        return 2;
+    }
+    
+    return 1;
+}
+
+
+static int write_lua( lua_State *L )
+{
+    buf_t *b = getudata( L );
+    int fd = luaL_checkint( L, 2 );
+    lua_Integer pos = luaL_checkinteger( L, 3 );
+    lua_Integer bytes = b->used;
+    ssize_t len = 0;
+    
+    // check arguments
+    if( fd < 0 ){
+        return luaL_argerror( L, 2, "fd must be larger than 0" );
+    }
+    else if( pos < 0 || pos >= b->used ){
+        return luaL_argerror( L, 3, "pos must be larger than 0 and less than the used size" );
+    }
+    else {
+        pos--;
+        bytes -= pos;
+    }
+    
+    len = write( fd, b->mem + (size_t)pos, (size_t)bytes );
+    // set number of bytes write
+    lua_pushinteger( L, (lua_Integer)len );
+    if( len == -1 ){
+        lua_pushinteger( L, errno );
+        return 2;
+    }
+    
+    return 1;
+}
 
 
 static int free_lua( lua_State *L )
@@ -610,9 +640,10 @@ LUALIB_API int luaopen_buffer( lua_State *L )
         { "set", set_lua },
         { "add", add_lua },
         { "insert", insert_lua },
-        { "read", read_lua },
         { "sub", sub_lua },
         { "substr", substr_lua },
+        { "read", read_lua },
+        { "write", write_lua },
         { "free", free_lua },
         { NULL, NULL }
     };
