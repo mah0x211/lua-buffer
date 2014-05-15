@@ -521,12 +521,14 @@ static int write_lua( lua_State *L )
 
 static int free_lua( lua_State *L )
 {
-    buf_t *b = getudata( L );
+    buf_t *b = (buf_t*)luaL_checkudata( L, 1, MODULE_MT );
     
-    pdealloc( b->mem );
-    b->mem = NULL;
-    b->used = 0;
-    b->nalloc = 0;
+    if( b->mem ){
+        pdealloc( b->mem );
+        b->mem = NULL;
+        b->used = 0;
+        b->nalloc = 0;
+    }
     
     return 0;
 }
