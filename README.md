@@ -9,7 +9,7 @@ buffer module.
 
 **Parameters**
 
-- bytes: the number of bytes.
+- bytes: size of memory allocation.
 
 **Returns**
 
@@ -95,7 +95,7 @@ copy the specified string.
 1. errno: errno of memory allocation failure.
 
 
-### errno = buf:add( str1[, str2[, ...]] )
+### errno = buf:add( str1 [, str2 [, ...]] )
 
 append the all arguments at the tail of buffer.
 
@@ -123,7 +123,7 @@ insert the string at the idx position.
 1. errno: errno of memory allocation failure.
 
 
-### str = buf:sub( from[, to] )
+### str = buf:sub( from [, to] )
 
 returns a substring between the start position and the end position. or, through the end of the string from start position.
 
@@ -137,7 +137,7 @@ returns a substring between the start position and the end position. or, through
 1. str: substring.
 
 
-### str = buf:substr( from[, len] )
+### str = buf:substr( from [, len] )
 
 returns a substring between the start position and the start position + specified length. or, through the end of the string from start position.
 
@@ -151,14 +151,14 @@ returns a substring between the start position and the start position + specifie
 1. str: substring.
 
 
-### bytes, errno = buf:read( fd, bytes )
+### bytes, errno = buf:read( fd [, bytes] )
 
 read specified number of bytes from the specified descriptor and return the actual number of bytes read.
 
 **Parameters**
 
 - fd: descriptor.
-- bytes: number of bytes for read.
+- bytes: number of bytes for read. (default: size of memory allocation)
 
 **Returns**
 
