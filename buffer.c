@@ -353,17 +353,23 @@ static int read_lua( lua_State *L )
 {
     buf_t *b = getudata( L );
     int fd = luaL_checkint( L, 2 );
-    lua_Integer bytes = luaL_checkinteger( L, 3 );
+    lua_Integer bytes = b->unit;
     ssize_t len = 0;
     
     // check arguments
     if( fd < 0 ){
         return luaL_argerror( L, 2, "fd must be larger than 0" );
     }
-    else if( bytes < 1 ){
-        return luaL_argerror( L, 3, "bytes must be larger than 0" );
+    // use buffer size
+    else if( !lua_isnoneornil( L, 3 ) )
+    {
+        bytes = luaL_checkinteger( L, 3 );
+        if( bytes < 1 ){
+            return luaL_argerror( L, 3, "bytes must be larger than 0" );
+        }
     }
-    else if( buf_increase( b, b->used, bytes ) != 0 ){
+    
+    if( buf_increase( b, b->used, bytes ) != 0 ){
         len = -1;
     }
     else if( ( len = read( fd, b->mem + b->used, (size_t)bytes ) ) > 0 ){
