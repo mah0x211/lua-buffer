@@ -499,7 +499,7 @@ static int write_lua( lua_State *L )
     if( fd < 0 ){
         return luaL_argerror( L, 2, "fd must be larger than 0" );
     }
-    else if( pos < 0 || pos >= b->used ){
+    else if( pos <= 0 || pos >= b->used ){
         return luaL_argerror( L, 3, "pos must be larger than 0 and less than the used size" );
     }
     else {
