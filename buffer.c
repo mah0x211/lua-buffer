@@ -480,7 +480,8 @@ static int read_lua( lua_State *L )
     // got error
     if( len == -1 ){
         lua_pushinteger( L, errno );
-        return 2;
+        lua_pushboolean( L, errno == EAGAIN || errno == EWOULDBLOCK );
+        return 3;
     }
     
     return 1;
@@ -512,7 +513,8 @@ static int write_lua( lua_State *L )
     lua_pushinteger( L, (lua_Integer)len );
     if( len == -1 ){
         lua_pushinteger( L, errno );
-        return 2;
+        lua_pushboolean( L, errno == EAGAIN || errno == EWOULDBLOCK );
+        return 3;
     }
     
     return 1;
