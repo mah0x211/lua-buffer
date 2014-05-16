@@ -151,7 +151,7 @@ returns a substring between the start position and the start position + specifie
 1. str: substring.
 
 
-### bytes, errno = buf:read( fd [, bytes] )
+### bytes, errno, again = buf:read( fd [, bytes] )
 
 read data into buffer from the specified descriptor and return the actual number of bytes read.
 
@@ -164,9 +164,10 @@ read data into buffer from the specified descriptor and return the actual number
 
 1. bytes: number of bytes read.
 2. errno: errno of read failure.
+3. again: true if errno was EAGAIN or EWOULDBLOCK.
 
 
-### bytes, errno = buf:write( fd, pos )
+### bytes, errno, again = buf:write( fd, pos )
 
 write buffer data to the specified descriptor and return the actual number of bytes written.
 
@@ -179,4 +180,5 @@ write buffer data to the specified descriptor and return the actual number of by
 
 1. bytes: number of bytes written.
 2. errno: errno of read failure.
+3. again: true if errno was EAGAIN or EWOULDBLOCK.
 
