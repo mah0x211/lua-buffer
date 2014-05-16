@@ -468,7 +468,7 @@ static int read_lua( lua_State *L )
         }
     }
     
-    if( buf_increase( b, b->used, bytes ) != 0 ){
+    if( buf_increase( b, b->used, bytes + 1 ) != 0 ){
         len = -1;
     }
     else if( ( len = read( fd, b->mem + b->used, (size_t)bytes ) ) > 0 ){
