@@ -3,6 +3,21 @@ lua-buffer
 
 buffer module.
 
+## Installation
+
+```sh
+luarocks install --from=http://mah0x211.github.io/rocks/ buffer
+```
+
+or 
+
+```sh
+git clone https://github.com/mah0x211/lua-buffer.git
+cd lua-buffer
+luarocks make
+```
+
+
 ## Create Buffer Object
 
 ### buf, errno = buffer( size )
