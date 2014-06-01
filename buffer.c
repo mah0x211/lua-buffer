@@ -77,6 +77,8 @@
 
 // do not touch directly
 typedef struct {
+    int fd;
+    int wfd;
     // buffer
     size_t unit;
     size_t nmax;
@@ -440,6 +442,31 @@ EMPTY_STRING:
 }
 
 
+static int setfd_lua( lua_State *L )
+{
+    buf_t *b = getudata( L );
+    int fd = luaL_checkint( L, 2 );
+    
+    // check arguments
+    if( fd < 0 ){
+        return luaL_argerror( L, 2, "fd must be larger than 0" );
+    }
+    b->fd = fd;
+    
+    // arg#3:fd for write
+    if( !lua_isnoneornil( L, 3 ) )
+    {
+        fd = luaL_checkint( L, 3 );
+        if( fd < 0 ){
+            return luaL_argerror( L, 3, "writefd must be larger than 0" );
+        }
+        b->wfd = fd;
+    }
+    b->wfd = fd;
+
+    return 0;
+}
+
 
 static int read_lua( lua_State *L )
 {
@@ -564,16 +591,40 @@ static int alloc_lua( lua_State *L )
 {
     lua_Integer lunit = luaL_checkinteger( L, 1 );
     buf_t *b = NULL;
+    int fd = -1;
+    int wfd = fd;
     
     // check arguments
+    // arg#1:unit
     if( lunit < 1 ){
         return luaL_argerror( L, 1, "size must be larger than 0" );
     }
-    else if( ( b = lua_newuserdata( L, sizeof( buf_t ) ) ) )
+    
+    // arg#2:fd for read/write
+    if( !lua_isnoneornil( L, 2 ) )
+    {
+        fd = luaL_checkint( L, 2 );
+        if( fd < 0 ){
+            return luaL_argerror( L, 2, "fd must be larger than 0" );
+        }
+        wfd = fd;
+    }
+    // arg#3:fd for write
+    if( !lua_isnoneornil( L, 3 ) )
+    {
+        wfd = luaL_checkint( L, 3 );
+        if( wfd < 0 ){
+            return luaL_argerror( L, 3, "writefd must be larger than 0" );
+        }
+    }
+    
+    if( ( b = lua_newuserdata( L, sizeof( buf_t ) ) ) )
     {
         size_t unit = (size_t)lunit;
         
         if( ( b->mem = pnalloc( unit, char ) ) ){
+            b->fd = fd;
+            b->wfd = wfd;
             b->total = b->unit = unit;
             b->nalloc = 1;
             b->nmax = SIZE_MAX / unit;
@@ -640,6 +691,7 @@ LUALIB_API int luaopen_buffer( lua_State *L )
         { "insert", insert_lua },
         { "sub", sub_lua },
         { "substr", substr_lua },
+        { "setfd", setfd_lua },
         { "read", read_lua },
         { "write", write_lua },
         { "free", free_lua },
