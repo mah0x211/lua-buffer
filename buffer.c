@@ -154,6 +154,22 @@ static inline void buf_term( buf_t *b, size_t pos )
 }
 
 
+static inline ssize_t buf_read( buf_t *b, size_t pos, size_t bytes )
+{
+    ssize_t len = 0;
+    
+    // check arguments
+    if( buf_increase( b, pos, bytes + 1 ) != 0 ){
+        len = -1;
+    }
+    else if( ( len = read( b->fd, b->mem + pos, bytes ) ) > 0 ){
+        buf_term( b, pos + (size_t)len );
+    }
+    
+    return len;
+}
+
+
 static int raw_lua( lua_State *L )
 {
     buf_t *b = getudata( L );
@@ -459,30 +475,30 @@ static int setfd_lua( lua_State *L )
 static int read_lua( lua_State *L )
 {
     buf_t *b = getudata( L );
-    int fd = luaL_checkint( L, 2 );
+    size_t pos = 0;
     size_t bytes = b->unit;
     ssize_t len = 0;
     
     // check arguments
-    if( fd < 0 ){
-        return luaL_argerror( L, 2, "fd must be larger than 0" );
-    }
-    else if( !lua_isnoneornil( L, 3 ) )
+    // arg#2 append
+    if( !lua_isnoneornil( L, 2 ) )
     {
-        lua_Integer lbytes = luaL_checkinteger( L, 3 );
+        luaL_checktype( L, 2, LUA_TBOOLEAN );
+        if( lua_toboolean( L, 2 ) ){
+            pos = b->used;
+        }
+    }
+    // arg#3 bytes
+    if( !lua_isnoneornil( L, 2 ) )
+    {
+        lua_Integer lbytes = luaL_checkinteger( L, 2 );
         if( lbytes < 1 ){
-            return luaL_argerror( L, 3, "bytes must be larger than 0" );
+            return luaL_argerror( L, 2, "bytes must be larger than 0" );
         }
         bytes = (size_t)lbytes;
     }
     
-    if( buf_increase( b, b->used, bytes + 1 ) != 0 ){
-        len = -1;
-    }
-    else if( ( len = read( fd, b->mem + b->used, bytes ) ) > 0 ){
-        buf_term( b, b->used + (size_t)len );
-    }
-    
+    len = buf_read( b, pos, bytes );
     // set number of bytes read
     lua_pushinteger( L, (lua_Integer)len );
     // got error
