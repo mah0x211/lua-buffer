@@ -78,6 +78,7 @@
 // do not touch directly
 typedef struct {
     int fd;
+    size_t cur;
     // buffer
     size_t unit;
     size_t nmax;
@@ -276,6 +277,23 @@ static int upper_lua( lua_State *L )
 }
 
 
+static inline int buf_set( buf_t *b, size_t pos, const char *str, size_t len )
+{
+    int rc = 0;
+    
+    if( len > 0 )
+    {
+        rc = buf_increase( b, pos, len + 1 );
+        if( rc == 0 ){
+            memcpy( b->mem + pos, str, len );
+            buf_term( b, pos + len );
+        }
+    }
+    
+    return rc;
+}
+
+
 static int set_lua( lua_State *L )
 {
     buf_t *b = getudata( L );
@@ -284,11 +302,11 @@ static int set_lua( lua_State *L )
     
     if( len == 0 ){
         buf_term( b, len );
+        b->cur = 0;
         return 0;
     }
-    else if( buf_increase( b, 0, len + 1 ) == 0 ){
-        memcpy( b->mem, str, len );
-        buf_term( b, len );
+    else if( buf_set( b, 0, str, len ) == 0 ){
+        b->cur = 0;
         return 0;
     }
     
@@ -311,14 +329,7 @@ static int add_lua( lua_State *L )
         
         lua_concat( L, argc - 1 );
         str = lua_tolstring( L, 2, &len );
-        if( len )
-        {
-            if( buf_increase( b, b->used, len + 1 ) == 0 ){
-                memcpy( b->mem + b->used, str, len );
-                buf_term( b, b->used + len );
-                return 0;
-            }
-            
+        if( buf_set( b, b->used, str, len ) != 0 ){
             // got error
             lua_pushinteger( L, errno );
             return 1;
@@ -617,6 +628,7 @@ static int alloc_lua( lua_State *L )
         
         if( ( b->mem = pnalloc( unit, char ) ) ){
             b->fd = fd;
+            b->cur = 0;
             b->total = b->unit = unit;
             b->nalloc = 1;
             b->nmax = SIZE_MAX / unit;
