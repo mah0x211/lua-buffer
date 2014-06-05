@@ -289,6 +289,9 @@ static inline int buf_set( buf_t *b, size_t pos, const char *str, size_t len )
             buf_term( b, pos + len );
         }
     }
+    else {
+        buf_term( b, pos );
+    }
     
     return rc;
 }
