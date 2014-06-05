@@ -500,11 +500,11 @@ static int read_lua( lua_State *L )
         }
     }
     // arg#3 bytes
-    if( !lua_isnoneornil( L, 2 ) )
+    if( !lua_isnoneornil( L, 3 ) )
     {
-        lua_Integer lbytes = luaL_checkinteger( L, 2 );
+        lua_Integer lbytes = luaL_checkinteger( L, 3 );
         if( lbytes < 1 ){
-            return luaL_argerror( L, 2, "bytes must be larger than 0" );
+            return luaL_argerror( L, 3, "bytes must be larger than 0" );
         }
         bytes = (size_t)lbytes;
     }
