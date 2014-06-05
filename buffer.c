@@ -303,12 +303,7 @@ static int set_lua( lua_State *L )
     size_t len = 0;
     const char *str = luaL_checklstring( L, 2, &len );
     
-    if( len == 0 ){
-        buf_term( b, len );
-        b->cur = 0;
-        return 0;
-    }
-    else if( buf_set( b, 0, str, len ) == 0 ){
+    if( buf_set( b, 0, str, len ) == 0 ){
         b->cur = 0;
         return 0;
     }
