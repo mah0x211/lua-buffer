@@ -516,6 +516,10 @@ static int read_lua( lua_State *L )
         lua_pushboolean( L, errno == EAGAIN || errno == EWOULDBLOCK );
         return 3;
     }
+    // rewind the write cursor
+    else if( pos == 0 ){
+        b->cur = 0;
+    }
     
     return 1;
 }
