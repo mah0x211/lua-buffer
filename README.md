@@ -197,9 +197,21 @@ read data into buffer from the descriptor and return the actual number of bytes 
 3. again: true if errno was EAGAIN or EWOULDBLOCK.
 
 
-### bytes, errno, again = buf:write( str )
+### bytes, errno, again = buf:flush()
 
 write buffer data to the descriptor and return the actual number of bytes written.
+
+**Returns**
+
+1. bytes: number of bytes written.
+2. errno: errno of write failure.
+3. again: true if errno was EAGAIN or EWOULDBLOCK.
+
+
+
+### bytes, errno, again = buf:write( str )
+
+write str to the descriptor and return the actual number of bytes written.
 
 **Parameters**
 
