@@ -20,11 +20,12 @@ luarocks make
 
 ## Create Buffer Object
 
-### buf, errno = buffer( size )
+### buf, errno = buffer( size [, fd] )
 
 **Parameters**
 
 - bytes: size of memory allocation.
+- fd: descriptor for read and write methods.
 
 **Returns**
 
@@ -37,6 +38,7 @@ luarocks make
 local buffer = require('buffer');
 local buf, err = buffer(128);
 ```
+
 
 ## Methods
 
@@ -166,13 +168,26 @@ returns a substring between the start position and the start position + specifie
 1. str: substring.
 
 
-### bytes, errno, again = buf:read( fd [, bytes] )
+### buf:setfd( fd )
 
-read data into buffer from the specified descriptor and return the actual number of bytes read.
+set descriptor for read and write methods.
 
 **Parameters**
 
 - fd: descriptor.
+
+**Returns**
+
+no return value.
+
+
+### bytes, errno, again = buf:read( [append [, bytes]] )
+
+read data into buffer from the descriptor and return the actual number of bytes read.
+
+**Parameters**
+
+- append: append mode. (default: false)
 - bytes: number of bytes for read. (default: size of memory allocation)
 
 **Returns**
@@ -182,18 +197,19 @@ read data into buffer from the specified descriptor and return the actual number
 3. again: true if errno was EAGAIN or EWOULDBLOCK.
 
 
-### bytes, errno, again = buf:write( fd, pos )
+### bytes, errno, again = buf:write( str )
 
-write buffer data to the specified descriptor and return the actual number of bytes written.
+write buffer data to the descriptor and return the actual number of bytes written.
 
 **Parameters**
 
-- fd: descriptor.
-- pos: offset position of buffer.
+- str: string.
 
 **Returns**
 
 1. bytes: number of bytes written.
-2. errno: errno of read failure.
+2. errno: errno of write failure.
 3. again: true if errno was EAGAIN or EWOULDBLOCK.
+
+
 
