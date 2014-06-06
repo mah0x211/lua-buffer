@@ -34,6 +34,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <sys/uio.h>
 // lualib
 #include <lauxlib.h>
 #include <lualib.h>
@@ -528,30 +529,23 @@ static int read_lua( lua_State *L )
 static int write_lua( lua_State *L )
 {
     buf_t *b = getudata( L );
-    int fd = luaL_checkint( L, 2 );
-    lua_Integer pos = luaL_checkinteger( L, 3 );
-    size_t bytes = b->used;
-    ssize_t len = 0;
+    struct iovec iov;
     
-    // check arguments
-    if( fd < 0 ){
-        return luaL_argerror( L, 2, "fd must be larger than 0" );
-    }
-    else if( pos <= 0 || pos >= (lua_Integer)b->used ){
-        return luaL_argerror( L, 3, "pos must be larger than 0 and less than the used size" );
+    iov.iov_base = (void*)luaL_checklstring( L, 2, &iov.iov_len );
+    if( iov.iov_base )
+    {
+        ssize_t len = writev( b->fd, &iov, 1 );
+        
+        // set number of bytes read
+        lua_pushinteger( L, (lua_Integer)len );
+        if( len == -1 ){
+            lua_pushinteger( L, errno );
+            lua_pushboolean( L, errno == EAGAIN || errno == EWOULDBLOCK );
+            return 3;
+        }
     }
     else {
-        pos--;
-        bytes -= (size_t)pos;
-    }
-    
-    len = write( fd, b->mem + (size_t)pos, bytes );
-    // set number of bytes write
-    lua_pushinteger( L, (lua_Integer)len );
-    if( len == -1 ){
-        lua_pushinteger( L, errno );
-        lua_pushboolean( L, errno == EAGAIN || errno == EWOULDBLOCK );
-        return 3;
+        lua_pushinteger( L, 0 );
     }
     
     return 1;
