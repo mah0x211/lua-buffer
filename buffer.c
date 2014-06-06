@@ -552,6 +552,44 @@ static int write_lua( lua_State *L )
 }
 
 
+static int flush_lua( lua_State *L )
+{
+    buf_t *b = getudata( L );
+    ssize_t len = 0;
+    struct iovec iov;
+    
+    if( b->cur > b->used ){
+        b->cur = 0;
+    }
+    iov.iov_base = b->mem + b->cur;
+    iov.iov_len = b->used - b->cur;
+    
+    len = writev( b->fd, &iov, 1 );
+    if( len == -1 ){
+        lua_pushinteger( L, (lua_Integer)len );
+        lua_pushinteger( L, (lua_Integer)b->used );
+        lua_pushinteger( L, errno );
+        lua_pushboolean( L, errno == EAGAIN || errno == EWOULDBLOCK );
+        return 4;
+    }
+    else
+    {
+        b->cur += (size_t)len;
+        // set number of bytes write
+        lua_pushinteger( L, (lua_Integer)b->cur );
+        // set total number of bytes buffer
+        lua_pushinteger( L, (lua_Integer)b->used );
+        // reset buffer
+        if( b->cur == b->used ){
+            b->cur = 0;
+            buf_term( b, 0 );
+        }
+    }
+    
+    return 2;
+}
+
+
 static int free_lua( lua_State *L )
 {
     buf_t *b = (buf_t*)luaL_checkudata( L, 1, MODULE_MT );
@@ -693,6 +731,7 @@ LUALIB_API int luaopen_buffer( lua_State *L )
         { "substr", substr_lua },
         { "setfd", setfd_lua },
         { "read", read_lua },
+        { "flush", flush_lua },
         { "write", write_lua },
         { "free", free_lua },
         { NULL, NULL }
