@@ -6,15 +6,7 @@ buffer module.
 ## Installation
 
 ```sh
-luarocks install --from=http://mah0x211.github.io/rocks/ buffer
-```
-
-or 
-
-```sh
-git clone https://github.com/mah0x211/lua-buffer.git
-cd lua-buffer
-luarocks make
+luarocks install buffer --from=http://mah0x211.github.io/rocks/
 ```
 
 
@@ -97,6 +89,36 @@ returns the copy of string converted to lowercase.
 
 1. str: the lowercase string.
 2. errno: errno of memory allocation failure.
+
+
+### str, errno = buf:hex()
+
+returns the copy of string converted to hexadecimal encode.
+
+**Returns**
+
+1. str: the hexadecimal encoded string.
+2. errno: errno of memory allocation failure.
+
+
+### str, errno = buf:base64()
+
+returns the copy of string converted to base64 encode.
+
+**Returns**
+
+1. str: the base64 encoded string.
+2. errno: errno of memory allocation failure(ENOMEM), or result too large(ERANGE).
+
+
+### str, errno = buf:base64url()
+
+returns the copy of string converted to base64url encode.
+
+**Returns**
+
+1. str: the base64url encoded string.
+2. errno: errno of memory allocation failure(ENOMEM), or result too large(ERANGE).
 
 
 ### errno = buf:set( str )
