@@ -682,33 +682,6 @@ static int alloc_lua( lua_State *L )
 }
 
 
-// metanames
-// module definition register
-static void define_mt( lua_State *L, struct luaL_Reg mmethod[], 
-                       struct luaL_Reg method[] )
-{
-    int i = 0;
-    
-    // create table __metatable
-    luaL_newmetatable( L, MODULE_MT );
-    // metamethods
-    while( mmethod[i].name ){
-        lstate_fn2tbl( L, mmethod[i].name, mmethod[i].func );
-        i++;
-    }
-    // methods
-    lua_pushstring( L, "__index" );
-    lua_newtable( L );
-    i = 0;
-    while( method[i].name ){
-        lstate_fn2tbl( L, method[i].name, method[i].func );
-        i++;
-    }
-    lua_rawset( L, -3 );
-    lua_pop( L, 1 );
-}
-
-
 LUALIB_API int luaopen_buffer( lua_State *L )
 {
     struct luaL_Reg mmethod[] = {
@@ -736,9 +709,27 @@ LUALIB_API int luaopen_buffer( lua_State *L )
         { "free", free_lua },
         { NULL, NULL }
     };
+    struct luaL_Reg *ptr = mmethod;
     
-    define_mt( L, mmethod, method );
-    // option method
+    // create table __metatable
+    luaL_newmetatable( L, MODULE_MT );
+    // metamethods
+    while( ptr->name ){
+        lstate_fn2tbl( L, ptr->name, ptr->func );
+        ptr++;
+    }
+    // methods
+    lua_pushstring( L, "__index" );
+    lua_newtable( L );
+    ptr = method;
+    while( ptr->name ){
+        lstate_fn2tbl( L, ptr->name, ptr->func );
+        ptr++;
+    }
+    lua_rawset( L, -3 );
+    lua_pop( L, 1 );
+    
+    // add alloc function
     lua_pushcfunction( L, alloc_lua );
     
     return 1;
