@@ -35,9 +35,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <sys/uio.h>
-// lualib
+// lua
+#include <lua.h>
 #include <lauxlib.h>
-#include <lualib.h>
 
 
 // memory alloc/dealloc
