@@ -38,6 +38,7 @@
 // lua
 #include <lua.h>
 #include <lauxlib.h>
+#include "hexcodec.h"
 
 
 // memory alloc/dealloc
@@ -277,6 +278,25 @@ static int upper_lua( lua_State *L )
     return upperlower_lua( L, 'a' ... 'z', - );
 }
 
+
+static int hex_lua( lua_State *L )
+{
+    buf_t *b = checkudata( L );
+    size_t len = b->used * 2;
+    char *enc = malloc( len );
+    
+    if( enc ){
+        hex_encode( (unsigned char*)enc, (unsigned char*)b->mem, b->used );
+        lua_pushlstring( L, enc, len );
+        return 1;
+    }
+    
+    // nomem error
+    lua_pushnil( L );
+    lua_pushstring( L, strerror( errno ) );
+    
+    return 2;
+}
 
 static inline int buf_set( buf_t *b, size_t pos, const char *str, size_t len )
 {
@@ -698,6 +718,7 @@ LUALIB_API int luaopen_buffer( lua_State *L )
         { "total", total_lua },
         { "lower", lower_lua },
         { "upper", upper_lua },
+        { "hex", hex_lua },
         { "set", set_lua },
         { "add", add_lua },
         { "insert", insert_lua },
