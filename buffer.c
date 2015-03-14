@@ -482,31 +482,18 @@ static int setfd_lua( lua_State *L )
 }
 
 
-static int read_lua( lua_State *L )
+static inline int read2buf( lua_State *L, buf_t *b, size_t pos )
 {
-    buf_t *b = getudata( L );
-    size_t pos = 0;
     size_t bytes = b->unit;
     ssize_t len = 0;
-    
+    lua_Integer rbytes = luaL_optinteger( L, 2, 0 );
+
     // check arguments
-    // arg#2 append
-    if( !lua_isnoneornil( L, 2 ) )
-    {
-        luaL_checktype( L, 2, LUA_TBOOLEAN );
-        if( lua_toboolean( L, 2 ) ){
-            pos = b->used;
-        }
+    // arg#2 bytes
+    if( rbytes < 0 ){
+        return luaL_argerror( L, 2, "bytes must be larger than 0" );
     }
-    // arg#3 bytes
-    if( !lua_isnoneornil( L, 3 ) )
-    {
-        lua_Integer lbytes = luaL_checkinteger( L, 3 );
-        if( lbytes < 1 ){
-            return luaL_argerror( L, 3, "bytes must be larger than 0" );
-        }
-        bytes = (size_t)lbytes;
-    }
+    bytes = (size_t)rbytes;
     
     len = buf_read( b, pos, bytes );
     // set number of bytes read
@@ -523,6 +510,20 @@ static int read_lua( lua_State *L )
     }
     
     return 1;
+}
+
+
+static int read_lua( lua_State *L )
+{
+    buf_t *b = getudata( L );
+    return read2buf( L, b, 0 );
+}
+
+
+static int readadd_lua( lua_State *L )
+{
+    buf_t *b = getudata( L );
+    return read2buf( L, b, b->used );
 }
 
 
@@ -704,6 +705,7 @@ LUALIB_API int luaopen_buffer( lua_State *L )
         { "substr", substr_lua },
         { "setfd", setfd_lua },
         { "read", read_lua },
+        { "readadd", readadd_lua },
         { "flush", flush_lua },
         { "write", write_lua },
         { "free", free_lua },
