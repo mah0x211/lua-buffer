@@ -5,7 +5,6 @@ source = {
 }
 description = {
     summary = "buffer module",
-    detailed = [[]],
     homepage = "https://github.com/mah0x211/lua-buffer",
     license = "MIT",
     maintainer = "Masatoshi Teruya"
@@ -17,7 +16,7 @@ build = {
     type = "builtin",
     modules = {
         buffer = {
-            sources = { "buffer.c" }
+            sources = { "src/buffer.c" }
         }
     }
 }
