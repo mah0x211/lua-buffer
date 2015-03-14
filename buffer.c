@@ -39,6 +39,7 @@
 #include <lua.h>
 #include <lauxlib.h>
 #include "hexcodec.h"
+#include "base64mix.h"
 
 
 // memory alloc/dealloc
@@ -297,6 +298,34 @@ static int hex_lua( lua_State *L )
     
     return 2;
 }
+
+
+#define base64_lua( L, fn ) ({ \
+    buf_t *b = checkudata( L ); \
+    size_t len = b->used; \
+    char *enc = fn( (unsigned char*)b->mem, &len ); \
+    int rc = 1; \
+    if( !enc ){ \
+        lua_pushnil( L ); \
+        lua_pushstring( L, strerror( errno ) ); \
+        rc = 2; \
+    } \
+    lua_pushlstring( L, enc, len ); \
+    rc; \
+})
+
+// base64 standard encoding
+static int base64std_lua( lua_State *L )
+{
+    return base64_lua( L, b64m_encode_std );
+}
+
+// base64 url encoding
+static int base64url_lua( lua_State *L )
+{
+    return base64_lua( L, b64m_encode_url );
+}
+
 
 static inline int buf_set( buf_t *b, size_t pos, const char *str, size_t len )
 {
@@ -719,6 +748,8 @@ LUALIB_API int luaopen_buffer( lua_State *L )
         { "lower", lower_lua },
         { "upper", upper_lua },
         { "hex", hex_lua },
+        { "base64", base64std_lua },
+        { "base64url", base64url_lua },
         { "set", set_lua },
         { "add", add_lua },
         { "insert", insert_lua },
