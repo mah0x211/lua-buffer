@@ -294,7 +294,7 @@ static int hex_lua( lua_State *L )
     
     // nomem error
     lua_pushnil( L );
-    lua_pushstring( L, strerror( errno ) );
+    lua_pushinteger( L, errno );
     
     return 2;
 }
@@ -307,7 +307,7 @@ static int hex_lua( lua_State *L )
     int rc = 1; \
     if( !enc ){ \
         lua_pushnil( L ); \
-        lua_pushstring( L, strerror( errno ) ); \
+        lua_pushinteger( L, errno ); \
         rc = 2; \
     } \
     lua_pushlstring( L, enc, len ); \
