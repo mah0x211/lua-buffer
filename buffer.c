@@ -604,7 +604,7 @@ static int free_lua( lua_State *L )
 }
 
 
-static int dealloc_gc( lua_State *L )
+static int gc_lua( lua_State *L )
 {
     buf_t *b = (buf_t*)lua_touserdata( L, 1 );
     
@@ -712,7 +712,7 @@ static void define_mt( lua_State *L, struct luaL_Reg mmethod[],
 LUALIB_API int luaopen_buffer( lua_State *L )
 {
     struct luaL_Reg mmethod[] = {
-        { "__gc", dealloc_gc },
+        { "__gc", gc_lua },
         { "__tostring", tostring_lua },
         { "__len", len_lua },
         { NULL, NULL }
