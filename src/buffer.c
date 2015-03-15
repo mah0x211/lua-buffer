@@ -686,6 +686,33 @@ static int len_lua( lua_State *L )
 }
 
 
+static int eq_lua( lua_State *L )
+{
+    buf_t *b = checkudata( L );
+    size_t len = 0;
+    const char *str = NULL;
+    
+    switch( lua_type( L, 2 ) ){
+        case LUA_TSTRING:
+            str = lua_tolstring( L, 2, &len );
+        break;
+        case LUA_TUSERDATA:
+            if( lua_getmetatable( L, 2 ) )
+            {
+                lua_pop( L, 1 );
+                if( luaL_callmeta( L, 2, "__tostring" ) ){
+                    str = lua_tolstring( L, -1, &len );
+                }
+            }
+        break;
+    }
+    
+    lua_pushboolean( L, str && len == b->used && 
+                     memcmp( str, b->mem, b->used ) == 0 );
+    return 1;
+}
+
+
 static int alloc_lua( lua_State *L )
 {
     lua_Integer lunit = luaL_checkinteger( L, 1 );
@@ -738,6 +765,7 @@ LUALIB_API int luaopen_buffer( lua_State *L )
         { "__gc", gc_lua },
         { "__tostring", tostring_lua },
         { "__len", len_lua },
+        { "__eq", eq_lua },
         { NULL, NULL }
     };
     struct luaL_Reg method[] = {
