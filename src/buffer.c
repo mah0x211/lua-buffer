@@ -542,7 +542,9 @@ static inline int read2buf( lua_State *L, buf_t *b, size_t pos )
     if( rbytes < 0 ){
         return luaL_argerror( L, 2, "bytes must be larger than 0" );
     }
-    bytes = (size_t)rbytes;
+    else if( rbytes ){
+        bytes = (size_t)rbytes;
+    }
     
     len = buf_read( b, pos, bytes );
     // set number of bytes read
