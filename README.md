@@ -12,17 +12,18 @@ luarocks install buffer --from=http://mah0x211.github.io/rocks/
 
 ## Create Buffer Object
 
-### buf, errno = buffer( size [, fd] )
+### buf, errno = buffer( size [, fd [, cloexec]] )
 
 **Parameters**
 
-- bytes: size of memory allocation.
-- fd: descriptor for read and write methods.
+- `bytes:uint`: size of memory allocation.
+- `fd:uint`: descriptor for read and write methods.
+- `cloexec:boolean`: file descriptor to be automatically closed when freeing buffer.
 
 **Returns**
 
-1. buf: buffer object.
-2. errno: depend on a system.
+1. `buf:userdata`: buffer object.
+2. `errno:int`: depend on a system.
 
 **Example**
 
@@ -40,13 +41,15 @@ return raw memory pointer and number of bytes.
 
 **Returns**
 
-1. mem: raw memory pointer (lightuserdata)
-2. bytes: number of bytes.
+1. `mem:lightuserdata`: raw memory pointer.
+2. `bytes:int`: number of bytes.
+
 
 ### buf:free()
 
 this method will deallocate memory immediately.  
 after calling this method, the buffer object can no longer be used.
+
 
 ### code, ... = buf:byte( [i [, j]] )
 
@@ -54,12 +57,12 @@ returns the internal numerical codes of the characters s[i], s[i+1], ..., s[j].
 
 **Parameters**
 
-- i: index number. (default: 1)
-- j: index number. (default: same as i)
+- `i:uint`: index number. (default: 1)
+- `j:uint`: index number. (default: same as i)
 
 **Returns**
 
-1. code: numerical codes of the characters.
+1. `code:uint`: numerical codes of the characters.
 
 
 ### bytes = buf:total()
@@ -68,7 +71,7 @@ return the bytes of allocated memory.
 
 **Returns**
 
-1. bytes: the bytes of allocated memory.
+1. `bytes:uint`: the bytes of allocated memory.
 
 
 ### str, errno = buf:upper()
@@ -77,8 +80,8 @@ returns the copy of string converted to uppercase.
 
 **Returns**
 
-1. str: the uppercase string.
-2. errno: errno of memory allocation failure.
+1. `str:string`: the uppercase string.
+2. `errno:int`: errno of memory allocation failure.
 
 
 ### str, errno = buf:lower()
@@ -87,8 +90,8 @@ returns the copy of string converted to lowercase.
 
 **Returns**
 
-1. str: the lowercase string.
-2. errno: errno of memory allocation failure.
+1. `str:string`: the lowercase string.
+2. `errno:int`: errno of memory allocation failure.
 
 
 ### str, errno = buf:hex()
@@ -97,8 +100,8 @@ returns the copy of string converted to hexadecimal encode.
 
 **Returns**
 
-1. str: the hexadecimal encoded string.
-2. errno: errno of memory allocation failure.
+1. `str:string`: the hexadecimal encoded string.
+2. `errno:int`: errno of memory allocation failure.
 
 
 ### str, errno = buf:base64()
@@ -107,8 +110,8 @@ returns the copy of string converted to base64 encode.
 
 **Returns**
 
-1. str: the base64 encoded string.
-2. errno: errno of memory allocation failure(ENOMEM), or result too large(ERANGE).
+1. `str:string`: the base64 encoded string.
+2. `errno:int`: errno of memory allocation failure(ENOMEM), or result too large(ERANGE).
 
 
 ### str, errno = buf:base64url()
@@ -117,8 +120,8 @@ returns the copy of string converted to base64url encode.
 
 **Returns**
 
-1. str: the base64url encoded string.
-2. errno: errno of memory allocation failure(ENOMEM), or result too large(ERANGE).
+1. `str:string`: the base64url encoded string.
+2. `errno:int`: errno of memory allocation failure(ENOMEM), or result too large(ERANGE).
 
 
 ### errno = buf:set( str )
@@ -127,11 +130,11 @@ copy the specified string.
 
 **Parameters**
 
-- str: string.
+- `str:string`: string.
 
 **Returns**
 
-1. errno: errno of memory allocation failure.
+1. `errno:int`: errno of memory allocation failure.
 
 
 ### errno = buf:add( str1 [, str2 [, ...]] )
@@ -140,11 +143,11 @@ append the all arguments at the tail of buffer.
 
 **Parameters**
 
-- str1..strN: string.
+- `str1..strN:string`: target strings.
 
 **Returns**
 
-1. errno: errno of memory allocation failure.
+1. `errno:int`: errno of memory allocation failure.
 
 
 ### errno = buf:insert( idx, str )
@@ -153,13 +156,12 @@ insert the string at the idx position.
 
 **Parameters**
 
-- idx: position of insertion that starting from 1.
-- str: insertion string.
-
+- `idx:int`: position of insertion that starting from 1.
+- `str:string`: insertion string.
 
 **Returns**
 
-1. errno: errno of memory allocation failure.
+1. `errno:int`: errno of memory allocation failure.
 
 
 ### str = buf:sub( from [, to] )
@@ -168,12 +170,12 @@ returns a substring between the start position and the end position. or, through
 
 **Parameters**
 
-- from: start position for string extraction that starting from 1.
-- to: the end position for string extraction.
+- `from:int`: start position for string extraction that starting from 1.
+- `to:int`: the end position for string extraction.
 
 **Returns**
 
-1. str: substring.
+1. `str:string`: substring.
 
 
 ### str = buf:substr( from [, len] )
@@ -182,21 +184,34 @@ returns a substring between the start position and the start position + specifie
 
 **Parameters**
 
-- from: start position for string extraction that starting from 1.
-- to: the end position for string extraction.
+- `from:int`: start position for string extraction that starting from 1.
+- `len:uint`: extraction length.
 
 **Returns**
 
-1. str: substring.
+1. `str:string`: substring.
 
 
-### buf:setfd( fd )
+### buf:setfd( fd [, cloexec] )
 
 set descriptor for read and write methods.
 
 **Parameters**
 
-- fd: descriptor.
+- `fd:uint`: file descriptor.
+- `cloexec:boolean`: file descriptor to be automatically closed when freeing buffer.
+
+**Returns**
+
+no return value.
+
+### buf:cloexec( cloexec )
+
+set the flag for file descriptor automatic closing.
+
+**Parameters**
+
+- `cloexec:boolean`: file descriptor to be automatically closed when freeing buffer.
 
 **Returns**
 
@@ -209,13 +224,13 @@ read data into buffer from the descriptor and return the actual number of bytes 
 
 **Parameters**
 
-- bytes: number of bytes for read. (default: size of memory allocation)
+- `bytes:uint`: number of bytes for read. (default: size of memory allocation)
 
 **Returns**
 
-1. bytes: number of bytes read.
-2. errno: errno of read failure.
-3. again: true if errno was EAGAIN or EWOULDBLOCK.
+1. `bytes:int`: number of bytes read.
+2. `errno:int`: errno of read failure.
+3. `again:boolean`: true if errno was EAGAIN or EWOULDBLOCK.
 
 
 ### bytes, errno, again = buf:readadd( [bytes] )
@@ -224,13 +239,13 @@ read data into last position of buffer from the descriptor and return the actual
 
 **Parameters**
 
-- bytes: number of bytes for read. (default: size of memory allocation)
+- `bytes:uint`: number of bytes for read. (default: size of memory allocation)
 
 **Returns**
 
-1. bytes: number of bytes read.
-2. errno: errno of read failure.
-3. again: true if errno was EAGAIN or EWOULDBLOCK.
+1. `bytes:int`: number of bytes read.
+2. `errno:int`: errno of read failure.
+3. `again:boolean`: true if errno was EAGAIN or EWOULDBLOCK.
 
 
 ### bytes, errno, again = buf:write( str )
@@ -239,14 +254,13 @@ write str to the descriptor and return the actual number of bytes written.
 
 **Parameters**
 
-- str: string.
+- `str:string`: target string.
 
 **Returns**
 
-1. bytes: number of bytes written.
-2. errno: errno of write failure.
-3. again: true if errno was EAGAIN or EWOULDBLOCK.
-
+1. `bytes:int`: number of bytes written.
+2. `errno:int`: errno of write failure.
+3. `again:boolean`: true if errno was EAGAIN or EWOULDBLOCK.
 
 
 ### bytes, errno, again = buf:flush()
@@ -255,9 +269,6 @@ write buffer data to the descriptor and return the actual number of bytes writte
 
 **Returns**
 
-1. bytes: number of bytes written.
-2. errno: errno of write failure.
-3. again: true if errno was EAGAIN or EWOULDBLOCK.
-
-
-
+1. `bytes:int`: number of bytes written.
+2. `errno:int`: errno of write failure.
+3. `again:boolean`: true if errno was EAGAIN or EWOULDBLOCK.
