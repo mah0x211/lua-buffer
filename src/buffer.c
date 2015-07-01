@@ -541,10 +541,14 @@ static int cloexec_lua( lua_State *L )
 {
     buf_t *b = checkudata( L );
     
-    luaL_checktype( L, 2, LUA_TBOOLEAN );
-    b->cloexec = lua_toboolean( L, 2 );
+    if( lua_gettop( L ) > 1 ){
+        luaL_checktype( L, 2, LUA_TBOOLEAN );
+        b->cloexec = lua_toboolean( L, 2 );
+    }
     
-    return 0;
+    lua_pushboolean( L, b->cloexec );
+    
+    return 1;
 }
 
 
