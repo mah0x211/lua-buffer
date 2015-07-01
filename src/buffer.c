@@ -537,6 +537,17 @@ static int setfd_lua( lua_State *L )
 }
 
 
+static int cloexec_lua( lua_State *L )
+{
+    buf_t *b = checkudata( L );
+    
+    luaL_checktype( L, 2, LUA_TBOOLEAN );
+    b->cloexec = lua_toboolean( L, 2 );
+    
+    return 0;
+}
+
+
 static inline int read2buf( lua_State *L, buf_t *b, size_t pos )
 {
     size_t bytes = b->unit;
@@ -807,6 +818,7 @@ LUALIB_API int luaopen_buffer( lua_State *L )
         { "sub", sub_lua },
         { "substr", substr_lua },
         { "setfd", setfd_lua },
+        { "cloexec", cloexec_lua },
         { "read", read_lua },
         { "readadd", readadd_lua },
         { "write", write_lua },
