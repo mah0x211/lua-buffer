@@ -205,9 +205,10 @@ set descriptor for read and write methods.
 
 no return value.
 
-### buf:cloexec( cloexec )
+### flag = buf:cloexec( [flag] )
 
-set the flag for file descriptor automatic closing.
+returns a current closexec flag.
+if a cloexec argument specified, set the flag for file descriptor automatic closing.
 
 **Parameters**
 
@@ -215,7 +216,7 @@ set the flag for file descriptor automatic closing.
 
 **Returns**
 
-no return value.
+1. `flag:boolean`: current cloexec flag.
 
 
 ### bytes, errno, again = buf:read( [bytes] )
