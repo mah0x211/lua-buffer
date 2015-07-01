@@ -81,6 +81,7 @@
 // do not touch directly
 typedef struct {
     int fd;
+    int cloexec;
     size_t cur;
     // buffer
     size_t unit;
@@ -525,6 +526,11 @@ static int setfd_lua( lua_State *L )
     if( fd < 0 ){
         return luaL_argerror( L, 2, "fd must be larger than 0" );
     }
+    // cloexec
+    else if( lua_gettop( L ) > 2 ){
+        luaL_checktype( L, 3, LUA_TBOOLEAN );
+        b->cloexec = lua_toboolean( L, 3 );
+    }
     b->fd = fd;
     
     return 0;
@@ -646,10 +652,14 @@ static int free_lua( lua_State *L )
 {
     buf_t *b = checkudata( L );
     
-    if( b->mem ){
+    if( b->mem )
+    {
         pdealloc( b->mem );
         b->mem = NULL;
         b->used = b->total = b->nalloc = 0;
+        if( b->cloexec && b->fd != -1 ){
+            close( b->fd );
+        }
     }
     
     return 0;
@@ -660,8 +670,12 @@ static int gc_lua( lua_State *L )
 {
     buf_t *b = (buf_t*)lua_touserdata( L, 1 );
     
-    if( b->mem ){
+    if( b->mem )
+    {
         pdealloc( b->mem );
+        if( b->cloexec && b->fd != -1 ){
+            close( b->fd );
+        }
     }
     
     return 0;
@@ -720,6 +734,7 @@ static int alloc_lua( lua_State *L )
     lua_Integer lunit = luaL_checkinteger( L, 1 );
     buf_t *b = NULL;
     int fd = -1;
+    int cloexec = 0;
     
     // check arguments
     // arg#1:unit
@@ -734,13 +749,19 @@ static int alloc_lua( lua_State *L )
             return luaL_argerror( L, 2, "fd must be larger than 0" );
         }
     }
-    
+    // arg#3:cloexec
+    else if( !lua_isnoneornil( L, 3 ) ){
+        luaL_checktype( L, 3, LUA_TBOOLEAN );
+        cloexec = lua_toboolean( L, 3 );
+    }
+
     if( ( b = lua_newuserdata( L, sizeof( buf_t ) ) ) )
     {
         size_t unit = (size_t)lunit;
         
         if( ( b->mem = pnalloc( unit, char ) ) ){
             b->fd = fd;
+            b->cloexec = cloexec;
             b->cur = 0;
             b->total = b->unit = unit;
             b->nalloc = 1;
@@ -788,8 +809,8 @@ LUALIB_API int luaopen_buffer( lua_State *L )
         { "setfd", setfd_lua },
         { "read", read_lua },
         { "readadd", readadd_lua },
-        { "flush", flush_lua },
         { "write", write_lua },
+        { "flush", flush_lua },
         { "free", free_lua },
         { NULL, NULL }
     };
