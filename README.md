@@ -203,13 +203,12 @@ set descriptor for read and write methods.
 no return value.
 
 
-### bytes, errno, again = buf:read( [append [, bytes]] )
+### bytes, errno, again = buf:read( [bytes] )
 
 read data into buffer from the descriptor and return the actual number of bytes read.
 
 **Parameters**
 
-- append: append mode. (default: false)
 - bytes: number of bytes for read. (default: size of memory allocation)
 
 **Returns**
@@ -219,16 +218,19 @@ read data into buffer from the descriptor and return the actual number of bytes 
 3. again: true if errno was EAGAIN or EWOULDBLOCK.
 
 
-### bytes, errno, again = buf:flush()
+### bytes, errno, again = buf:readadd( [bytes] )
 
-write buffer data to the descriptor and return the actual number of bytes written.
+read data into last position of buffer from the descriptor and return the actual number of bytes read.
+
+**Parameters**
+
+- bytes: number of bytes for read. (default: size of memory allocation)
 
 **Returns**
 
-1. bytes: number of bytes written.
-2. errno: errno of write failure.
+1. bytes: number of bytes read.
+2. errno: errno of read failure.
 3. again: true if errno was EAGAIN or EWOULDBLOCK.
-
 
 
 ### bytes, errno, again = buf:write( str )
@@ -238,6 +240,18 @@ write str to the descriptor and return the actual number of bytes written.
 **Parameters**
 
 - str: string.
+
+**Returns**
+
+1. bytes: number of bytes written.
+2. errno: errno of write failure.
+3. again: true if errno was EAGAIN or EWOULDBLOCK.
+
+
+
+### bytes, errno, again = buf:flush()
+
+write buffer data to the descriptor and return the actual number of bytes written.
 
 **Returns**
 
