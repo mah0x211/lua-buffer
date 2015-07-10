@@ -1,7 +1,7 @@
 local base64 = require('base64mix');
 local buffer = require('buffer');
 local str = 'ab?cd~';
-local b = ifNil( buffer( 100 ) );
+local b = ifNil( buffer.new( 100 ) );
 local enc, dec;
 
 ifNotNil( b:add( str ) );

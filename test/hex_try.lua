@@ -1,7 +1,7 @@
 local hex = require('hex');
 local buffer = require('buffer');
 local str = 'hello world!';
-local b = ifNil( buffer( 100 ) );
+local b = ifNil( buffer.new( 100 ) );
 local enc, dec;
 
 ifNotNil( b:add( str ) );
