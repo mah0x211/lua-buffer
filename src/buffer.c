@@ -744,7 +744,7 @@ static int eq_lua( lua_State *L )
 }
 
 
-static int alloc_lua( lua_State *L )
+static int new_lua( lua_State *L )
 {
     lua_Integer lunit = luaL_checkinteger( L, 1 );
     buf_t *b = NULL;
@@ -850,8 +850,9 @@ LUALIB_API int luaopen_buffer( lua_State *L )
     lua_rawset( L, -3 );
     lua_pop( L, 1 );
     
-    // add alloc function
-    lua_pushcfunction( L, alloc_lua );
+    // add new function
+    lua_newtable( L );
+    lstate_fn2tbl( L, "new", new_lua );
     
     return 1;
 }
