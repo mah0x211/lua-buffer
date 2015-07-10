@@ -12,7 +12,7 @@ luarocks install buffer --from=http://mah0x211.github.io/rocks/
 
 ## Create Buffer Object
 
-### buf, errno = buffer( size [, fd [, cloexec]] )
+### buf, errno = buffer.new( size [, fd [, cloexec]] )
 
 **Parameters**
 
@@ -29,7 +29,7 @@ luarocks install buffer --from=http://mah0x211.github.io/rocks/
 
 ```lua
 local buffer = require('buffer');
-local buf, err = buffer(128);
+local buf, err = buffer.new(128);
 ```
 
 
