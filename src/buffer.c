@@ -263,7 +263,7 @@ static int total_lua( lua_State *L )
     } \
     else { \
         lua_pushnil( L ); \
-        lua_pushinteger( L, errno ); \
+        lua_pushstring( L, strerror(errno) ); \
     } \
     rc; \
 })
@@ -295,7 +295,7 @@ static int hex_lua( lua_State *L )
     
     // nomem error
     lua_pushnil( L );
-    lua_pushinteger( L, errno );
+    lua_pushstring( L, strerror( errno ) );
     
     return 2;
 }
@@ -308,7 +308,7 @@ static int hex_lua( lua_State *L )
     int rc = 1; \
     if( !enc ){ \
         lua_pushnil( L ); \
-        lua_pushinteger( L, errno ); \
+        lua_pushstring( L, strerror( errno ) ); \
         rc = 2; \
     } \
     lua_pushlstring( L, enc, len ); \
@@ -360,7 +360,7 @@ static int set_lua( lua_State *L )
     }
     
     // got error
-    lua_pushinteger( L, errno );
+    lua_pushstring( L, strerror( errno ) );
     
     return 1;
 }
@@ -380,7 +380,7 @@ static int add_lua( lua_State *L )
         str = lua_tolstring( L, 2, &len );
         if( buf_set( b, b->used, str, len ) != 0 ){
             // got error
-            lua_pushinteger( L, errno );
+            lua_pushstring( L, strerror( errno ) );
             return 1;
         }
     }
@@ -423,7 +423,7 @@ static int insert_lua( lua_State *L )
     }
     
     // got error
-    lua_pushinteger( L, errno );
+    lua_pushstring( L, strerror( errno ) );
     
     return 1;
 }
@@ -572,7 +572,7 @@ static inline int read2buf( lua_State *L, buf_t *b, size_t pos )
     lua_pushinteger( L, (lua_Integer)len );
     // got error
     if( len == -1 ){
-        lua_pushinteger( L, errno );
+        lua_pushstring( L, strerror( errno ) );
         lua_pushboolean( L, errno == EAGAIN || errno == EWOULDBLOCK );
         return 3;
     }
@@ -602,23 +602,20 @@ static int readadd_lua( lua_State *L )
 static int write_lua( lua_State *L )
 {
     buf_t *b = checkudata( L );
+    ssize_t len = 0;
     struct iovec iov;
     
     iov.iov_base = (void*)luaL_checklstring( L, 2, &iov.iov_len );
-    if( iov.iov_base )
-    {
-        ssize_t len = writev( b->fd, &iov, 1 );
-        
-        // set number of bytes read
-        lua_pushinteger( L, (lua_Integer)len );
-        if( len == -1 ){
-            lua_pushinteger( L, errno );
-            lua_pushboolean( L, errno == EAGAIN || errno == EWOULDBLOCK );
-            return 3;
-        }
+    if( iov.iov_base ){
+        len = writev( b->fd, &iov, 1 );
     }
-    else {
-        lua_pushinteger( L, 0 );
+    
+    // set number of bytes read
+    lua_pushinteger( L, (lua_Integer)len );
+    if( len == -1 ){
+        lua_pushstring( L, strerror( errno ) );
+        lua_pushboolean( L, errno == EAGAIN || errno == EWOULDBLOCK );
+        return 3;
     }
     
     return 1;
@@ -641,7 +638,7 @@ static int flush_lua( lua_State *L )
     if( len == -1 ){
         lua_pushinteger( L, (lua_Integer)len );
         lua_pushinteger( L, (lua_Integer)b->used );
-        lua_pushinteger( L, errno );
+        lua_pushstring( L, strerror( errno ) );
         lua_pushboolean( L, errno == EAGAIN || errno == EWOULDBLOCK );
         return 4;
     }
@@ -791,7 +788,7 @@ static int new_lua( lua_State *L )
     
     // got error
     lua_pushnil( L );
-    lua_pushinteger( L, errno );
+    lua_pushstring( L, strerror( errno ) );
     
     return 2;
 }
