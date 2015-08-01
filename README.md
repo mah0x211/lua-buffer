@@ -12,7 +12,7 @@ luarocks install buffer --from=http://mah0x211.github.io/rocks/
 
 ## Create Buffer Object
 
-### buf, errno = buffer.new( size [, fd [, cloexec]] )
+### buf, err = buffer.new( size [, fd [, cloexec]] )
 
 **Parameters**
 
@@ -23,7 +23,7 @@ luarocks install buffer --from=http://mah0x211.github.io/rocks/
 **Returns**
 
 1. `buf:userdata`: buffer object.
-2. `errno:int`: depend on a system.
+2. `err:string`: error message.
 
 **Example**
 
@@ -74,57 +74,57 @@ return the bytes of allocated memory.
 1. `bytes:uint`: the bytes of allocated memory.
 
 
-### str, errno = buf:upper()
+### str, err = buf:upper()
 
 returns the copy of string converted to uppercase.
 
 **Returns**
 
 1. `str:string`: the uppercase string.
-2. `errno:int`: errno of memory allocation failure.
+2. `err:string`: error message of memory allocation failure.
 
 
-### str, errno = buf:lower()
+### str, err = buf:lower()
 
 returns the copy of string converted to lowercase.
 
 **Returns**
 
 1. `str:string`: the lowercase string.
-2. `errno:int`: errno of memory allocation failure.
+2. `err:string`: error message of memory allocation failure.
 
 
-### str, errno = buf:hex()
+### str, err = buf:hex()
 
 returns the copy of string converted to hexadecimal encode.
 
 **Returns**
 
 1. `str:string`: the hexadecimal encoded string.
-2. `errno:int`: errno of memory allocation failure.
+2. `err:string`: error message of memory allocation failure.
 
 
-### str, errno = buf:base64()
+### str, err = buf:base64()
 
 returns the copy of string converted to base64 encode.
 
 **Returns**
 
 1. `str:string`: the base64 encoded string.
-2. `errno:int`: errno of memory allocation failure(ENOMEM), or result too large(ERANGE).
+2. `err:string`: error message of memory allocation failure(ENOMEM), or result too large(ERANGE).
 
 
-### str, errno = buf:base64url()
+### str, err = buf:base64url()
 
 returns the copy of string converted to base64url encode.
 
 **Returns**
 
 1. `str:string`: the base64url encoded string.
-2. `errno:int`: errno of memory allocation failure(ENOMEM), or result too large(ERANGE).
+2. `err:string`: error message of memory allocation failure(ENOMEM), or result too large(ERANGE).
 
 
-### errno = buf:set( str )
+### err = buf:set( str )
 
 copy the specified string.
 
@@ -134,10 +134,10 @@ copy the specified string.
 
 **Returns**
 
-1. `errno:int`: errno of memory allocation failure.
+1. `err:string`: error message of memory allocation failure.
 
 
-### errno = buf:add( str1 [, str2 [, ...]] )
+### err = buf:add( str1 [, str2 [, ...]] )
 
 append the all arguments at the tail of buffer.
 
@@ -147,10 +147,10 @@ append the all arguments at the tail of buffer.
 
 **Returns**
 
-1. `errno:int`: errno of memory allocation failure.
+1. `err:string`: error message of memory allocation failure.
 
 
-### errno = buf:insert( idx, str )
+### err = buf:insert( idx, str )
 
 insert the string at the idx position.
 
@@ -161,7 +161,7 @@ insert the string at the idx position.
 
 **Returns**
 
-1. `errno:int`: errno of memory allocation failure.
+1. `err:string`: error message of memory allocation failure.
 
 
 ### str = buf:sub( from [, to] )
@@ -219,7 +219,7 @@ if a cloexec argument specified, set the flag for file descriptor automatic clos
 1. `flag:boolean`: current cloexec flag.
 
 
-### bytes, errno, again = buf:read( [bytes] )
+### bytes, err, again = buf:read( [bytes] )
 
 read data into buffer from the descriptor and return the actual number of bytes read.
 
@@ -230,11 +230,11 @@ read data into buffer from the descriptor and return the actual number of bytes 
 **Returns**
 
 1. `bytes:int`: number of bytes read.
-2. `errno:int`: errno of read failure.
+2. `err:string`: error message of read failure.
 3. `again:boolean`: true if errno was EAGAIN or EWOULDBLOCK.
 
 
-### bytes, errno, again = buf:readadd( [bytes] )
+### bytes, err, again = buf:readadd( [bytes] )
 
 read data into last position of buffer from the descriptor and return the actual number of bytes read.
 
@@ -245,11 +245,11 @@ read data into last position of buffer from the descriptor and return the actual
 **Returns**
 
 1. `bytes:int`: number of bytes read.
-2. `errno:int`: errno of read failure.
+2. `err:string`: error message of read failure.
 3. `again:boolean`: true if errno was EAGAIN or EWOULDBLOCK.
 
 
-### bytes, errno, again = buf:write( str )
+### bytes, err, again = buf:write( str )
 
 write str to the descriptor and return the actual number of bytes written.
 
@@ -260,16 +260,16 @@ write str to the descriptor and return the actual number of bytes written.
 **Returns**
 
 1. `bytes:int`: number of bytes written.
-2. `errno:int`: errno of write failure.
+2. `err:string`: error message of write failure.
 3. `again:boolean`: true if errno was EAGAIN or EWOULDBLOCK.
 
 
-### bytes, errno, again = buf:flush()
+### bytes, err, again = buf:flush()
 
 write buffer data to the descriptor and return the actual number of bytes written.
 
 **Returns**
 
 1. `bytes:int`: number of bytes written.
-2. `errno:int`: errno of write failure.
+2. `err:string`: error message of write failure.
 3. `again:boolean`: true if errno was EAGAIN or EWOULDBLOCK.
